@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="665e1d67-2918-4a90-b0ca-c7931764ba87" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="693e7342-f060-4663-80a0-446e07cfd5bd" >
+		<http:request-connection host="jsonplaceholder.typicode.com" />
+	</http:request-config>
+	<flow name="tryFlow" doc:id="04342347-122f-45df-babc-707fe8635320" >
+		<http:listener doc:name="Listener" doc:id="29320b85-80a0-4103-a550-c10a31ec25bd" config-ref="HTTP_Listener_config" path="/try"/>
+		<set-payload value='#["Before HTTP Method"]' doc:name="Before HTTP Method" doc:id="142043c0-3b71-4a7e-a1a6-ef916797b1fb" />
+		<try doc:name="Try" doc:id="d45f02a5-cb68-496a-929e-6d1f265bf013" >
+			<http:request method="GET" doc:name="Request" doc:id="cf259237-1657-4b8f-b445-d9a3d21f95af" config-ref="HTTP_Request_configuration" path="/posts" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3a4aed62-3808-4064-b7d7-46923b65198b" type="HTTP:CONNECTIVITY">
+					<ee:transform doc:name="Transform Message" doc:id="6c55e575-d688-498d-a08a-cad3657d5f40" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "Getting 500 server error"
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-payload value='#["After HTTP Request"]' doc:name="After HTTP Request" doc:id="e533b229-c93c-4166-83d5-63e4fe0e0d4d" />
+	</flow>
+</mule>
